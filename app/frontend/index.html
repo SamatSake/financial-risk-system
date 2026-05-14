@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Risk System</title>
+</head>
+<body>
+<h2>Financial Risk Scoring</h2>
+
+<input id="age" placeholder="Age">
+<input id="income" placeholder="Income">
+<input id="loan" placeholder="Loan">
+<input id="history" placeholder="Credit History">
+
+<button onclick="send()">Predict</button>
+
+<pre id="out"></pre>
+
+<script>
+async function send(){
+    const data = {
+        age: +age.value,
+        income: +income.value,
+        loan_amount: +loan.value,
+        credit_history: +history.value
+    }
+
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(data)
+    })
+
+    const json = await res.json()
+    out.innerText = JSON.stringify(json,null,2)
+}
+</script>
+
+</body>
+</html>
