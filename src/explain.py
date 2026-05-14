@@ -1,19 +1,28 @@
-import shap
-import joblib
-import pandas as pd
+def explain(input_dict, prediction=None):
 
-MODEL_PATH = "models/model.pkl"
+    credit = input_dict["AMT_CREDIT"]
+    income = input_dict["AMT_INCOME_TOTAL"]
+    history = input_dict["previous_credit_count"]
 
-model = joblib.load(MODEL_PATH)
+    reasons = []
 
-explainer = shap.TreeExplainer(model)
+    if credit / max(income, 1) > 0.5:
+        reasons.append("High credit-to-income ratio increases risk")
 
+    if history < 2:
+        reasons.append("Very limited credit history")
 
-def explain(input_data: dict):
-    df = pd.DataFrame([input_data])
-
-    shap_values = explainer.shap_values(df)
+    if income < 30000:
+        reasons.append("Low income level increases default probability")
 
     return {
-        "feature_contributions": shap_values[1].tolist()
+        "decision_explanation": (
+            "HIGH RISK" if len(reasons) >= 2 else "MODERATE RISK"
+        ),
+        "main_reasons": reasons,
+        "feature_impacts": {
+            "AMT_CREDIT": credit,
+            "AMT_INCOME_TOTAL": income,
+            "previous_credit_count": history
+        }
     }

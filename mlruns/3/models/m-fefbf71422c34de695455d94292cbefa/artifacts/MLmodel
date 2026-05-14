@@ -1,0 +1,23 @@
+artifact_path: file:///C:/Users/samat/Desktop/financial-risk-system/mlruns/3/models/m-fefbf71422c34de695455d94292cbefa/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.11.1
+model_id: m-fefbf71422c34de695455d94292cbefa
+model_size_bytes: 404854
+model_uuid: m-fefbf71422c34de695455d94292cbefa
+prompts: null
+run_id: e4e915a7108545b2ab99bcd5d4c8846c
+utc_time_created: '2026-05-14 07:07:53.586237'

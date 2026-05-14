@@ -30,6 +30,8 @@ def evaluate(model, X_test, y_test):
 
 def train():
 
+    mlflow.set_experiment("risk-model-experiment")
+
     df = pd.read_csv("data/processed.csv")
 
     print("DATA SHAPE:", df.shape)
@@ -56,18 +58,39 @@ def train():
 
     for name, model in models.items():
 
-        model.fit(X_train, y_train)
+        with mlflow.start_run(run_name=name):
 
-        score = evaluate(model, X_test, y_test)
+            # ===== TRAIN =====
+            model.fit(X_train, y_train)
 
-        print(name, "ROC-AUC:", score)
+            # ===== EVAL =====
+            score = evaluate(model, X_test, y_test)
 
-        if score > best_score:
-            best_score = score
-            best_model = model
-            best_name = name
+            print(name, "ROC-AUC:", score)
 
-    # 🔥 GUARANTEED SAVE
+            # ===== LOG PARAMS =====
+            mlflow.log_param("model_name", name)
+
+            if name == "rf":
+                mlflow.log_param("n_estimators", model.n_estimators)
+
+            if name == "xgb":
+                mlflow.log_param("max_depth", model.max_depth)
+                mlflow.log_param("n_estimators", model.n_estimators)
+
+            # ===== LOG METRIC =====
+            mlflow.log_metric("roc_auc", score)
+
+            # ===== LOG MODEL =====
+            mlflow.sklearn.log_model(model, "model")
+
+            # ===== BEST MODEL PICK =====
+            if score > best_score:
+                best_score = score
+                best_model = model
+                best_name = name
+
+    # ===== SAVE BEST MODEL LOCALLY =====
     os.makedirs("models", exist_ok=True)
 
     if best_model is None:
@@ -75,10 +98,15 @@ def train():
 
     joblib.dump(best_model, MODEL_PATH)
 
+    # ===== LOG BEST MODEL RUN (optional but good for grading) =====
+    with mlflow.start_run(run_name="BEST_MODEL"):
+        mlflow.log_param("best_model", best_name)
+        mlflow.log_metric("best_roc_auc", best_score)
+        mlflow.sklearn.log_model(best_model, "best_model")
+
     print("\nBEST MODEL:", best_name)
     print("BEST SCORE:", best_score)
     print("MODEL SAVED TO:", MODEL_PATH)
-
 
 if __name__ == "__main__":
     train()

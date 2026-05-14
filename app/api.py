@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from src.predict import predict_proba
 from src.decision_engine import risk_decision
 from src.explain import explain
+from src.monitoring.monitoring import log_prediction
 
 app = FastAPI(title="Financial Risk Scoring System")
 
@@ -21,20 +22,33 @@ class ClientData(BaseModel):
 
 @app.post("/explain")
 def explain_prediction(data: ClientData):
+    try:
+        input_dict = data.dict()
 
-    input_dict = data.dict()
+        explanation = explain(input_dict)
 
-    explanation = explain(input_dict)
+        return {
+            "status": "success",
+            "explanation": explanation
+        }
 
-    return explanation
-
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 @app.post("/predict")
 def predict(data: ClientData):
 
     input_dict = data.dict()
 
-    probability = predict_proba(input_dict)
+    probability = float(predict_proba(input_dict))
     decision = risk_decision(probability)
+
+    try:
+        log_prediction(input_dict, probability, decision)
+    except Exception as e:
+        print("Logging failed:", e)
 
     return {
         "risk_score": probability,
